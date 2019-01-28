@@ -15,7 +15,11 @@
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
 	</properties>
-	<build>
+    <modules>
+        <module>../spring-boot-samples/spring-boot-sample-undertow</module>
+    </modules>
+
+    <build>
 		<plugins>
 			<plugin>
 				<!-- We use invoker so that the spring-boot-maven-plugin can be used -->

@@ -44,16 +44,25 @@ import org.springframework.util.ErrorHandler;
  */
 public class EventPublishingRunListener implements SpringApplicationRunListener, Ordered {
 
+    /**
+     * Spring 应用
+     */
 	private final SpringApplication application;
-
+    /**
+     * 参数集合
+     */
 	private final String[] args;
-
+    /**
+     * 事件广播器
+     */
 	private final SimpleApplicationEventMulticaster initialMulticaster;
 
 	public EventPublishingRunListener(SpringApplication application, String[] args) {
 		this.application = application;
 		this.args = args;
+		// 创建 SimpleApplicationEventMulticaster 对象
 		this.initialMulticaster = new SimpleApplicationEventMulticaster();
+		// 添加应用的监听器们，到 initialMulticaster 中
 		for (ApplicationListener<?> listener : application.getListeners()) {
 			this.initialMulticaster.addApplicationListener(listener);
 		}
@@ -66,23 +75,20 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 
 	@Override
 	public void starting() {
-		this.initialMulticaster.multicastEvent(
-				new ApplicationStartingEvent(this.application, this.args));
+		this.initialMulticaster.multicastEvent(new ApplicationStartingEvent(this.application, this.args));
 	}
 
-	@Override
+	@Override // ApplicationEnvironmentPreparedEvent
 	public void environmentPrepared(ConfigurableEnvironment environment) {
-		this.initialMulticaster.multicastEvent(new ApplicationEnvironmentPreparedEvent(
-				this.application, this.args, environment));
+		this.initialMulticaster.multicastEvent(new ApplicationEnvironmentPreparedEvent(this.application, this.args, environment));
 	}
 
-	@Override
+	@Override // ApplicationContextInitializedEvent
 	public void contextPrepared(ConfigurableApplicationContext context) {
-		this.initialMulticaster.multicastEvent(new ApplicationContextInitializedEvent(
-				this.application, this.args, context));
+		this.initialMulticaster.multicastEvent(new ApplicationContextInitializedEvent(this.application, this.args, context));
 	}
 
-	@Override
+	@Override // ApplicationPreparedEvent
 	public void contextLoaded(ConfigurableApplicationContext context) {
 		for (ApplicationListener<?> listener : this.application.getListeners()) {
 			if (listener instanceof ApplicationContextAware) {
@@ -90,32 +96,27 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 			}
 			context.addApplicationListener(listener);
 		}
-		this.initialMulticaster.multicastEvent(
-				new ApplicationPreparedEvent(this.application, this.args, context));
+		this.initialMulticaster.multicastEvent(new ApplicationPreparedEvent(this.application, this.args, context));
 	}
 
-	@Override
+	@Override // ApplicationStartedEvent
 	public void started(ConfigurableApplicationContext context) {
-		context.publishEvent(
-				new ApplicationStartedEvent(this.application, this.args, context));
+		context.publishEvent(new ApplicationStartedEvent(this.application, this.args, context));
 	}
 
 	@Override
 	public void running(ConfigurableApplicationContext context) {
-		context.publishEvent(
-				new ApplicationReadyEvent(this.application, this.args, context));
+		context.publishEvent(new ApplicationReadyEvent(this.application, this.args, context));
 	}
 
-	@Override
+	@Override // ApplicationFailedEvent
 	public void failed(ConfigurableApplicationContext context, Throwable exception) {
-		ApplicationFailedEvent event = new ApplicationFailedEvent(this.application,
-				this.args, context, exception);
+		ApplicationFailedEvent event = new ApplicationFailedEvent(this.application, this.args, context, exception);
 		if (context != null && context.isActive()) {
 			// Listeners have been registered to the application context so we should
 			// use it at this point if we can
 			context.publishEvent(event);
-		}
-		else {
+		} else {
 			// An inactive context may not have a multicaster so we use our multicaster to
 			// call all of the context's listeners instead
 			if (context instanceof AbstractApplicationContext) {
