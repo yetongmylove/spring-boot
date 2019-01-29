@@ -16,16 +16,8 @@
 
 package org.springframework.boot.autoconfigure;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -37,6 +29,8 @@ import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import java.util.*;
 
 /**
  * Class for storing auto-configuration packages for reference later (e.g. by JPA entity
@@ -71,10 +65,8 @@ public abstract class AutoConfigurationPackages {
 	public static List<String> get(BeanFactory beanFactory) {
 		try {
 			return beanFactory.getBean(BEAN, BasePackages.class).get();
-		}
-		catch (NoSuchBeanDefinitionException ex) {
-			throw new IllegalStateException(
-					"Unable to retrieve @EnableAutoConfiguration base packages");
+		} catch (NoSuchBeanDefinitionException ex) {
+			throw new IllegalStateException("Unable to retrieve @EnableAutoConfiguration base packages");
 		}
 	}
 
@@ -90,28 +82,25 @@ public abstract class AutoConfigurationPackages {
 	 * @param packageNames the package names to set
 	 */
 	public static void register(BeanDefinitionRegistry registry, String... packageNames) {
+	    // 如果已经存在该 BEAN ，则修改其包（package）属性
 		if (registry.containsBeanDefinition(BEAN)) {
 			BeanDefinition beanDefinition = registry.getBeanDefinition(BEAN);
-			ConstructorArgumentValues constructorArguments = beanDefinition
-					.getConstructorArgumentValues();
-			constructorArguments.addIndexedArgumentValue(0,
-					addBasePackages(constructorArguments, packageNames));
-		}
-		else {
-			GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+			ConstructorArgumentValues constructorArguments = beanDefinition.getConstructorArgumentValues();
+			constructorArguments.addIndexedArgumentValue(0, addBasePackages(constructorArguments, packageNames));
+        // 如果不存在该 BEAN ，则创建一个 Bean ，并进行注册
+        } else { GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
 			beanDefinition.setBeanClass(BasePackages.class);
-			beanDefinition.getConstructorArgumentValues().addIndexedArgumentValue(0,
-					packageNames);
+			beanDefinition.getConstructorArgumentValues().addIndexedArgumentValue(0, packageNames);
 			beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(BEAN, beanDefinition);
 		}
 	}
 
-	private static String[] addBasePackages(
-			ConstructorArgumentValues constructorArguments, String[] packageNames) {
-		String[] existing = (String[]) constructorArguments
-				.getIndexedArgumentValue(0, String[].class).getValue();
-		Set<String> merged = new LinkedHashSet<>();
+	private static String[] addBasePackages(ConstructorArgumentValues constructorArguments, String[] packageNames) {
+		// 获得已存在的
+	    String[] existing = (String[]) constructorArguments.getIndexedArgumentValue(0, String[].class).getValue();
+		// 进行合并
+	    Set<String> merged = new LinkedHashSet<>();
 		merged.addAll(Arrays.asList(existing));
 		merged.addAll(Arrays.asList(packageNames));
 		return StringUtils.toStringArray(merged);
@@ -124,8 +113,7 @@ public abstract class AutoConfigurationPackages {
 	static class Registrar implements ImportBeanDefinitionRegistrar, DeterminableImports {
 
 		@Override
-		public void registerBeanDefinitions(AnnotationMetadata metadata,
-				BeanDefinitionRegistry registry) {
+		public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
 			register(registry, new PackageImport(metadata).getPackageName());
 		}
 
@@ -141,6 +129,9 @@ public abstract class AutoConfigurationPackages {
 	 */
 	private static final class PackageImport {
 
+        /**
+         * 包名
+         */
 		private final String packageName;
 
 		PackageImport(AnnotationMetadata metadata) {
@@ -198,8 +189,7 @@ public abstract class AutoConfigurationPackages {
 								+ "in the default package. Automatic @Repository and "
 								+ "@Entity scanning is not enabled.");
 					}
-				}
-				else {
+				} else {
 					if (logger.isDebugEnabled()) {
 						String packageNames = StringUtils
 								.collectionToCommaDelimitedString(this.packages);
