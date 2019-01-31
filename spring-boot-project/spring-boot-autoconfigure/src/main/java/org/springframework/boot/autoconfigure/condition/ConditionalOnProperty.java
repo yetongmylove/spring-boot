@@ -16,14 +16,10 @@
 
 package org.springframework.boot.autoconfigure.condition;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.env.Environment;
+
+import java.lang.annotation.*;
 
 /**
  * {@link Conditional} that checks if the specified properties have a specific value. By
@@ -96,12 +92,15 @@ import org.springframework.core.env.Environment;
 public @interface ConditionalOnProperty {
 
 	/**
+     * 是否有指定属性们
 	 * Alias for {@link #name()}.
 	 * @return the names
 	 */
 	String[] value() default {};
 
 	/**
+     * 属性前缀
+     *
 	 * A prefix that should be applied to each property. The prefix automatically ends
 	 * with a dot if not specified. A valid prefix is defined by one or more words
 	 * separated with dots (e.g. {@code "acme.system.feature"}).
@@ -122,6 +121,8 @@ public @interface ConditionalOnProperty {
 	String[] name() default {};
 
 	/**
+     * 是否指定属性，有指定值
+     *
 	 * The string representation of the expected value for the properties. If not
 	 * specified, the property must <strong>not</strong> be equal to {@code false}.
 	 * @return the expected value
@@ -129,6 +130,10 @@ public @interface ConditionalOnProperty {
 	String havingValue() default "";
 
 	/**
+     * 如果属性不存在，是否认为是匹配的。
+     *
+     * 如果为 false 时，就认为属性丢失。
+     *
 	 * Specify if the condition should match if the property is not set. Defaults to
 	 * {@code false}.
 	 * @return if should match if the property is missing

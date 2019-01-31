@@ -16,17 +16,13 @@
 
 package org.springframework.boot.autoconfigure.condition;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import java.lang.annotation.Annotation;
+import java.util.*;
 
 /**
  * A message associated with a {@link ConditionOutcome}. Provides a fluent builder style
@@ -37,6 +33,9 @@ import org.springframework.util.StringUtils;
  */
 public final class ConditionMessage {
 
+    /**
+     * 消息
+     */
 	private String message;
 
 	private ConditionMessage() {

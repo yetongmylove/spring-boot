@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/demo")
+//@Conditional(TestCondition.class)
 public class DemoController {
 
     @ResponseBody

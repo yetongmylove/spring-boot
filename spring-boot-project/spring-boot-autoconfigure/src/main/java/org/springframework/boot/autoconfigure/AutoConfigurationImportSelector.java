@@ -246,44 +246,55 @@ public class AutoConfigurationImportSelector
 		return (excludes != null) ? Arrays.asList(excludes) : Collections.emptyList();
 	}
 
-	// TODO 1001
 	private List<String> filter(List<String> configurations, AutoConfigurationMetadata autoConfigurationMetadata) {
-		long startTime = System.nanoTime();
-		String[] candidates = StringUtils.toStringArray(configurations);
-		boolean[] skip = new boolean[candidates.length];
-		boolean skipped = false;
+//	    // 这里是艿艿乱加的。
+//	    if (true) {
+//	        return configurations;
+//        }
+        // 声明需要用到的变量
+		long startTime = System.nanoTime(); // 记录开始时间，用于下面统计消耗的时间
+		String[] candidates = StringUtils.toStringArray(configurations); // 配置类的数组
+		boolean[] skip = new boolean[candidates.length]; // 每个配置类是否需要忽略的数组，通过下标互相索引
+		boolean skipped = false; // 是否有需要忽略的
+        // 遍历 AutoConfigurationImportFilter 数组，逐个匹配
 		for (AutoConfigurationImportFilter filter : getAutoConfigurationImportFilters()) {
-			invokeAwareMethods(filter);
+			// 设置 AutoConfigurationImportFilter 的属性们
+		    invokeAwareMethods(filter);
+		    // 执行批量匹配，并返回匹配结果
 			boolean[] match = filter.match(candidates, autoConfigurationMetadata);
+			// 遍历匹配结果，判断哪些需要忽略
 			for (int i = 0; i < match.length; i++) {
-				if (!match[i]) {
+				if (!match[i]) { // 如果有不匹配的
 					skip[i] = true;
-					candidates[i] = null;
-					skipped = true;
+					candidates[i] = null; // 标记为空，循环的下一次，就无需匹配它了。
+					skipped = true; // 标记存在不匹配的
 				}
 			}
 		}
+		// 如果没有需要忽略的，直接返回 configurations 即可
 		if (!skipped) {
 			return configurations;
 		}
+		// 如果存在需要忽略的，构建新的数组，排除掉忽略的
 		List<String> result = new ArrayList<>(candidates.length);
 		for (int i = 0; i < candidates.length; i++) {
 			if (!skip[i]) {
 				result.add(candidates[i]);
 			}
 		}
+		// 打印，消耗的时间，已经排除的数量
 		if (logger.isTraceEnabled()) {
 			int numberFiltered = configurations.size() - result.size();
 			logger.trace("Filtered " + numberFiltered + " auto configuration class in "
 					+ TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime)
 					+ " ms");
 		}
+		// 返回
 		return new ArrayList<>(result);
 	}
 
 	protected List<AutoConfigurationImportFilter> getAutoConfigurationImportFilters() {
-		return SpringFactoriesLoader.loadFactories(AutoConfigurationImportFilter.class,
-				this.beanClassLoader);
+		return SpringFactoriesLoader.loadFactories(AutoConfigurationImportFilter.class, this.beanClassLoader);
 	}
 
 	protected final <T> List<T> removeDuplicates(List<T> list) {

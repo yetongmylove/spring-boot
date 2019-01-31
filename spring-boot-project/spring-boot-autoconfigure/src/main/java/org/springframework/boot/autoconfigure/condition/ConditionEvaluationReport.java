@@ -16,18 +16,6 @@
 
 package org.springframework.boot.autoconfigure.condition;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -36,6 +24,8 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+
+import java.util.*;
 
 /**
  * Records condition evaluation details for reporting and logging.
@@ -167,9 +157,8 @@ public final class ConditionEvaluationReport {
 	 * @return the {@link ConditionEvaluationReport} or {@code null}
 	 */
 	public static ConditionEvaluationReport find(BeanFactory beanFactory) {
-		if (beanFactory != null && beanFactory instanceof ConfigurableBeanFactory) {
-			return ConditionEvaluationReport
-					.get((ConfigurableListableBeanFactory) beanFactory);
+		if (beanFactory instanceof ConfigurableBeanFactory) {
+			return ConditionEvaluationReport.get((ConfigurableListableBeanFactory) beanFactory);
 		}
 		return null;
 	}
