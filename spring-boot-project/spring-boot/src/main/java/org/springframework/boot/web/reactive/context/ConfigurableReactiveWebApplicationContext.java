@@ -24,7 +24,6 @@ import org.springframework.context.ConfigurableApplicationContext;
  * @author Stephane Nicoll
  * @since 2.0.0
  */
-public interface ConfigurableReactiveWebApplicationContext
-		extends ConfigurableApplicationContext, ReactiveWebApplicationContext {
+public interface ConfigurableReactiveWebApplicationContext extends ConfigurableApplicationContext, ReactiveWebApplicationContext {
 
 }

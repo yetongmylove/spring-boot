@@ -16,25 +16,19 @@
 
 package org.springframework.boot.web.reactive.context;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.annotation.AnnotatedBeanDefinitionReader;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigRegistry;
-import org.springframework.context.annotation.AnnotationConfigUtils;
-import org.springframework.context.annotation.AnnotationScopeMetadataResolver;
-import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
-import org.springframework.context.annotation.ScopeMetadataResolver;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * {@link ReactiveWebServerApplicationContext} that accepts annotated classes as input -
@@ -56,7 +50,7 @@ import org.springframework.util.ObjectUtils;
  * @see ReactiveWebServerApplicationContext
  * @see AnnotationConfigApplicationContext
  */
-public class AnnotationConfigReactiveWebServerApplicationContext
+    public class AnnotationConfigReactiveWebServerApplicationContext
 		extends ReactiveWebServerApplicationContext implements AnnotationConfigRegistry {
 
 	private final AnnotatedBeanDefinitionReader reader;

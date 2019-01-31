@@ -23,6 +23,8 @@ import org.springframework.context.ApplicationContext;
  * Interface to be implemented by {@link ApplicationContext application contexts} that
  * create and manage the lifecycle of an embedded {@link WebServer}.
  *
+ * WebServer ApplicationContext 接口
+ *
  * @author Phillip Webb
  * @since 2.0.0
  */

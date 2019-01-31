@@ -21,6 +21,8 @@ import org.springframework.context.ApplicationContext;
 /**
  * Interface to provide configuration for a reactive web application.
  *
+ * Reactive Web ApplicationContext 接口
+ *
  * @author Stephane Nicoll
  * @since 2.0.0
  */

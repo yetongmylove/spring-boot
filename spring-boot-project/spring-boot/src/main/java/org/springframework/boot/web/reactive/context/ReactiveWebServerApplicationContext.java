@@ -16,10 +16,6 @@
 
 package org.springframework.boot.web.reactive.context;
 
-import java.util.function.Supplier;
-
-import reactor.core.publisher.Mono;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.web.context.ConfigurableWebServerApplicationContext;
@@ -30,6 +26,9 @@ import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
+
+import java.util.function.Supplier;
 
 /**
  * A {@link GenericReactiveWebApplicationContext} that can be used to bootstrap itself
@@ -42,8 +41,15 @@ public class ReactiveWebServerApplicationContext
 		extends GenericReactiveWebApplicationContext
 		implements ConfigurableWebServerApplicationContext {
 
+    /**
+     * ServerManager 对象
+     */
 	private volatile ServerManager serverManager;
-
+    /**
+     * 通过 {@link #setServerNamespace(String)} 注入。
+     *
+     * 不过貌似，一直没被注入过，可以暂时先无视
+     */
 	private String serverNamespace;
 
 	/**
@@ -64,9 +70,10 @@ public class ReactiveWebServerApplicationContext
 	@Override
 	public final void refresh() throws BeansException, IllegalStateException {
 		try {
+		    // 调用父方法
 			super.refresh();
-		}
-		catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
+		    // 停止 Reactive WebServer
 			stopAndReleaseReactiveWebServer();
 			throw ex;
 		}
@@ -74,21 +81,24 @@ public class ReactiveWebServerApplicationContext
 
 	@Override
 	protected void onRefresh() {
+	    // 调用父方法
 		super.onRefresh();
 		try {
+		    // 创建 WebServer
 			createWebServer();
-		}
-		catch (Throwable ex) {
-			throw new ApplicationContextException("Unable to start reactive web server",
-					ex);
+		} catch (Throwable ex) {
+			throw new ApplicationContextException("Unable to start reactive web server", ex);
 		}
 	}
 
 	private void createWebServer() {
+	    // 获得 ServerManager 对象。
 		ServerManager serverManager = this.serverManager;
+		// 如果不存在，则进行初始化
 		if (serverManager == null) {
 			this.serverManager = ServerManager.get(getWebServerFactory());
 		}
+		// 初始化 PropertySource
 		initPropertySources();
 	}
 
@@ -100,26 +110,28 @@ public class ReactiveWebServerApplicationContext
 	 */
 	protected ReactiveWebServerFactory getWebServerFactory() {
 		// Use bean names so that we don't consider the hierarchy
-		String[] beanNames = getBeanFactory()
-				.getBeanNamesForType(ReactiveWebServerFactory.class);
+        // 获得 ServletWebServerFactory 类型对应的 Bean 的名字们
+		String[] beanNames = getBeanFactory().getBeanNamesForType(ReactiveWebServerFactory.class);
+        // 如果是 0 个，抛出 ApplicationContextException 异常，因为至少要一个
 		if (beanNames.length == 0) {
-			throw new ApplicationContextException(
-					"Unable to start ReactiveWebApplicationContext due to missing "
-							+ "ReactiveWebServerFactory bean.");
+			throw new ApplicationContextException("Unable to start ReactiveWebApplicationContext due to missing " + "ReactiveWebServerFactory bean.");
 		}
+        // 如果是 > 1 个，抛出 ApplicationContextException 异常，因为不知道初始化哪个
 		if (beanNames.length > 1) {
-			throw new ApplicationContextException(
-					"Unable to start ReactiveWebApplicationContext due to multiple "
-							+ "ReactiveWebServerFactory beans : "
-							+ StringUtils.arrayToCommaDelimitedString(beanNames));
+			throw new ApplicationContextException("Unable to start ReactiveWebApplicationContext due to multiple "
+							+ "ReactiveWebServerFactory beans : " + StringUtils.arrayToCommaDelimitedString(beanNames));
 		}
+        // 获得 ReactiveWebServerFactory 类型对应的 Bean 对象
 		return getBeanFactory().getBean(beanNames[0], ReactiveWebServerFactory.class);
 	}
 
 	@Override
 	protected void finishRefresh() {
+	    // 调用父方法
 		super.finishRefresh();
+		// 启动 WebServer
 		WebServer webServer = startReactiveWebServer();
+		// 如果创建 WebServer 成功，发布 ReactiveWebServerInitializedEvent 事件
 		if (webServer != null) {
 			publishEvent(new ReactiveWebServerInitializedEvent(webServer, this));
 		}
@@ -127,7 +139,10 @@ public class ReactiveWebServerApplicationContext
 
 	private WebServer startReactiveWebServer() {
 		ServerManager serverManager = this.serverManager;
+		// 获得 HttpHandler
+        // 启动 WebServer
 		ServerManager.start(serverManager, this::getHttpHandler);
+		// 获得 WebServer
 		return ServerManager.getWebServer(serverManager);
 	}
 
@@ -138,22 +153,26 @@ public class ReactiveWebServerApplicationContext
 	 */
 	protected HttpHandler getHttpHandler() {
 		// Use bean names so that we don't consider the hierarchy
-		String[] beanNames = getBeanFactory().getBeanNamesForType(HttpHandler.class);
-		if (beanNames.length == 0) {
-			throw new ApplicationContextException(
-					"Unable to start ReactiveWebApplicationContext due to missing HttpHandler bean.");
+        // 获得 HttpHandler 类型对应的 Bean 的名字们
+        String[] beanNames = getBeanFactory().getBeanNamesForType(HttpHandler.class);
+        // 如果是 0 个，抛出 ApplicationContextException 异常，因为至少要一个
+        if (beanNames.length == 0) {
+			throw new ApplicationContextException("Unable to start ReactiveWebApplicationContext due to missing HttpHandler bean.");
 		}
-		if (beanNames.length > 1) {
-			throw new ApplicationContextException(
-					"Unable to start ReactiveWebApplicationContext due to multiple HttpHandler beans : "
+        // 如果是 > 1 个，抛出 ApplicationContextException 异常，因为不知道初始化哪个
+        if (beanNames.length > 1) {
+			throw new ApplicationContextException("Unable to start ReactiveWebApplicationContext due to multiple HttpHandler beans : "
 							+ StringUtils.arrayToCommaDelimitedString(beanNames));
 		}
-		return getBeanFactory().getBean(beanNames[0], HttpHandler.class);
+        // 获得 HttpHandler 类型对应的 Bean 对象
+        return getBeanFactory().getBean(beanNames[0], HttpHandler.class);
 	}
 
 	@Override
 	protected void onClose() {
+	    // 调用父类方法
 		super.onClose();
+		// 关闭 WebServer
 		stopAndReleaseReactiveWebServer();
 	}
 
@@ -161,8 +180,7 @@ public class ReactiveWebServerApplicationContext
 		ServerManager serverManager = this.serverManager;
 		try {
 			ServerManager.stop(serverManager);
-		}
-		finally {
+		} finally {
 			this.serverManager = null;
 		}
 	}
@@ -193,19 +211,28 @@ public class ReactiveWebServerApplicationContext
 	 */
 	static final class ServerManager implements HttpHandler {
 
+        /**
+         * WebServer 对象
+         */
 		private final WebServer server;
-
+        /**
+         * HttpHandler 对象，具体在 {@link #handle(ServerHttpRequest, ServerHttpResponse)} 方法中使用。
+         */
 		private volatile HttpHandler handler;
 
 		private ServerManager(ReactiveWebServerFactory factory) {
-			this.handler = this::handleUninitialized;
+			this.handler = this::handleUninitialized; // 同下面
+//			this.handler = new HttpHandler() {
+//                @Override
+//                public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
+//                    return handleUninitialized(request, response);
+//                }
+//            };
 			this.server = factory.getWebServer(this);
 		}
 
-		private Mono<Void> handleUninitialized(ServerHttpRequest request,
-				ServerHttpResponse response) {
-			throw new IllegalStateException(
-					"The HttpHandler has not yet been initialized");
+		private Mono<Void> handleUninitialized(ServerHttpRequest request, ServerHttpResponse response) {
+			throw new IllegalStateException("The HttpHandler has not yet been initialized");
 		}
 
 		@Override
@@ -225,10 +252,11 @@ public class ReactiveWebServerApplicationContext
 			return (manager != null) ? manager.server : null;
 		}
 
-		public static void start(ServerManager manager,
-				Supplier<HttpHandler> handlerSupplier) {
+		public static void start(ServerManager manager, Supplier<HttpHandler> handlerSupplier) {
 			if (manager != null && manager.server != null) {
+			    // 赋值 handler
 				manager.handler = handlerSupplier.get();
+				// 启动 server
 				manager.server.start();
 			}
 		}
@@ -237,8 +265,7 @@ public class ReactiveWebServerApplicationContext
 			if (manager != null && manager.server != null) {
 				try {
 					manager.server.stop();
-				}
-				catch (Exception ex) {
+				} catch (Exception ex) {
 					throw new IllegalStateException(ex);
 				}
 			}

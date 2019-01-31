@@ -23,6 +23,8 @@ import org.springframework.context.ConfigurableApplicationContext;
  * web server application contexts}. Provides facilities to configure the context, in
  * addition to the methods in the {WebServerApplicationContext} interface.
  *
+ * 可配置的 WebServer ApplicationContext 接口
+ *
  * @author Phillip Webb
  * @since 2.0.0
  */
