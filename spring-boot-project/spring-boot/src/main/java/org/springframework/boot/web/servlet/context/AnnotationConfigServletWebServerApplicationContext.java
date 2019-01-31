@@ -16,24 +16,19 @@
 
 package org.springframework.boot.web.servlet.context;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.annotation.AnnotatedBeanDefinitionReader;
-import org.springframework.context.annotation.AnnotationConfigRegistry;
-import org.springframework.context.annotation.AnnotationConfigUtils;
-import org.springframework.context.annotation.AnnotationScopeMetadataResolver;
-import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
-import org.springframework.context.annotation.ScopeMetadataResolver;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * {@link ServletWebServerApplicationContext} that accepts annotated classes as input - in
@@ -53,15 +48,20 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
  * @see ServletWebServerApplicationContext
  * @see AnnotationConfigWebApplicationContext
  */
-public class AnnotationConfigServletWebServerApplicationContext
-		extends ServletWebServerApplicationContext implements AnnotationConfigRegistry {
+public class AnnotationConfigServletWebServerApplicationContext extends ServletWebServerApplicationContext implements AnnotationConfigRegistry {
 
 	private final AnnotatedBeanDefinitionReader reader;
 
 	private final ClassPathBeanDefinitionScanner scanner;
 
+    /**
+     * 需要被 {@link #reader} 读取的注册类们
+     */
 	private final Set<Class<?>> annotatedClasses = new LinkedHashSet<>();
 
+    /**
+     * 需要被 {@link #scanner} 扫描的包
+     */
 	private String[] basePackages;
 
 	/**
@@ -80,8 +80,7 @@ public class AnnotationConfigServletWebServerApplicationContext
 	 * {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 * @param beanFactory the DefaultListableBeanFactory instance to use for this context
 	 */
-	public AnnotationConfigServletWebServerApplicationContext(
-			DefaultListableBeanFactory beanFactory) {
+	public AnnotationConfigServletWebServerApplicationContext(DefaultListableBeanFactory beanFactory) {
 		super(beanFactory);
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
@@ -94,10 +93,11 @@ public class AnnotationConfigServletWebServerApplicationContext
 	 * @param annotatedClasses one or more annotated classes, e.g. {@code @Configuration}
 	 * classes
 	 */
-	public AnnotationConfigServletWebServerApplicationContext(
-			Class<?>... annotatedClasses) {
+	public AnnotationConfigServletWebServerApplicationContext(Class<?>... annotatedClasses) {
 		this();
+		// 注册指定的注解的类们
 		register(annotatedClasses);
+        // 初始化 Spring 容器
 		refresh();
 	}
 
@@ -109,7 +109,9 @@ public class AnnotationConfigServletWebServerApplicationContext
 	 */
 	public AnnotationConfigServletWebServerApplicationContext(String... basePackages) {
 		this();
+		// 扫描指定包
 		scan(basePackages);
+		// 初始化 Spring 容器
 		refresh();
 	}
 
@@ -143,9 +145,7 @@ public class AnnotationConfigServletWebServerApplicationContext
 	public void setBeanNameGenerator(BeanNameGenerator beanNameGenerator) {
 		this.reader.setBeanNameGenerator(beanNameGenerator);
 		this.scanner.setBeanNameGenerator(beanNameGenerator);
-		this.getBeanFactory().registerSingleton(
-				AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR,
-				beanNameGenerator);
+		this.getBeanFactory().registerSingleton(AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR, beanNameGenerator);
 	}
 
 	/**
@@ -174,10 +174,9 @@ public class AnnotationConfigServletWebServerApplicationContext
 	 * @see #scan(String...)
 	 * @see #refresh()
 	 */
-	@Override
+	@Override // 实现自 AnnotationConfigRegistry 接口
 	public final void register(Class<?>... annotatedClasses) {
-		Assert.notEmpty(annotatedClasses,
-				"At least one annotated class must be specified");
+		Assert.notEmpty(annotatedClasses, "At least one annotated class must be specified");
 		this.annotatedClasses.addAll(Arrays.asList(annotatedClasses));
 	}
 
@@ -194,18 +193,23 @@ public class AnnotationConfigServletWebServerApplicationContext
 		this.basePackages = basePackages;
 	}
 
-	@Override
+	@Override // 实现自 AbstractApplicationContext 抽象类
 	protected void prepareRefresh() {
+	    // 清空 scanner 的缓存
 		this.scanner.clearCache();
+		// 调用父类
 		super.prepareRefresh();
 	}
 
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		super.postProcessBeanFactory(beanFactory);
+        // 调用父类
+        super.postProcessBeanFactory(beanFactory);
+        // 扫描指定的包
 		if (this.basePackages != null && this.basePackages.length > 0) {
 			this.scanner.scan(this.basePackages);
 		}
+        // 注册指定的注解的类们定的
 		if (!this.annotatedClasses.isEmpty()) {
 			this.reader.register(ClassUtils.toClassArray(this.annotatedClasses));
 		}

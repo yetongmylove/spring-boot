@@ -26,8 +26,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * @author Phillip Webb
  * @since 2.0.0
  */
-public interface ConfigurableWebServerApplicationContext
-		extends ConfigurableApplicationContext, WebServerApplicationContext {
+public interface ConfigurableWebServerApplicationContext extends ConfigurableApplicationContext, WebServerApplicationContext {
 
 	/**
 	 * Set the server namespace of the context.

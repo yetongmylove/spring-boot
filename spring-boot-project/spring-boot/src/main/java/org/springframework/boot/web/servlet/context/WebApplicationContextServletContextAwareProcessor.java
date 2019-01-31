@@ -16,12 +16,12 @@
 
 package org.springframework.boot.web.servlet.context;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-
 import org.springframework.util.Assert;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.support.ServletContextAwareProcessor;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 
 /**
  * Variant of {@link ServletContextAwareProcessor} for use with a
@@ -31,13 +31,11 @@ import org.springframework.web.context.support.ServletContextAwareProcessor;
  *
  * @author Phillip Webb
  */
-public class WebApplicationContextServletContextAwareProcessor
-		extends ServletContextAwareProcessor {
+public class WebApplicationContextServletContextAwareProcessor extends ServletContextAwareProcessor {
 
 	private final ConfigurableWebApplicationContext webApplicationContext;
 
-	public WebApplicationContextServletContextAwareProcessor(
-			ConfigurableWebApplicationContext webApplicationContext) {
+	public WebApplicationContextServletContextAwareProcessor(ConfigurableWebApplicationContext webApplicationContext) {
 		Assert.notNull(webApplicationContext, "WebApplicationContext must not be null");
 		this.webApplicationContext = webApplicationContext;
 	}
