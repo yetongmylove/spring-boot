@@ -479,11 +479,9 @@ public class SpringApplication {
 		ClassLoader classLoader = getClassLoader();
 		// Use names and ensure unique to protect against duplicates
         // 加载指定类型对应的，在 `META-INF/spring.factories` 里的类名的数组
-		Set<String> names = new LinkedHashSet<>(
-				SpringFactoriesLoader.loadFactoryNames(type, classLoader));
+		Set<String> names = new LinkedHashSet<>(SpringFactoriesLoader.loadFactoryNames(type, classLoader));
 		// 创建对象们
-		List<T> instances = createSpringFactoriesInstances(type, parameterTypes,
-				classLoader, args, names);
+		List<T> instances = createSpringFactoriesInstances(type, parameterTypes, classLoader, args, names);
 		// 排序对象们
 		AnnotationAwareOrderComparator.sort(instances);
 		return instances;
@@ -710,8 +708,7 @@ public class SpringApplication {
 	    // 遍历 ApplicationContextInitializer 数组
 		for (ApplicationContextInitializer initializer : getInitializers()) {
 		    // 校验 ApplicationContextInitializer 的泛型非空
-			Class<?> requiredType = GenericTypeResolver.resolveTypeArgument(
-					initializer.getClass(), ApplicationContextInitializer.class);
+			Class<?> requiredType = GenericTypeResolver.resolveTypeArgument(initializer.getClass(), ApplicationContextInitializer.class);
 			Assert.isInstanceOf(requiredType, context, "Unable to call initializer.");
 			// 初始化 ApplicationContextInitializer
 			initializer.initialize(context);
@@ -1254,8 +1251,7 @@ public class SpringApplication {
 	 * {@link ApplicationContext}.
 	 * @param initializers the initializers to set
 	 */
-	public void setInitializers(
-			Collection<? extends ApplicationContextInitializer<?>> initializers) {
+	public void setInitializers(Collection<? extends ApplicationContextInitializer<?>> initializers) {
 		this.initializers = new ArrayList<>();
 		this.initializers.addAll(initializers);
 	}

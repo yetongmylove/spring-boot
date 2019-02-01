@@ -16,14 +16,14 @@
 
 package org.springframework.boot.context;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.StringUtils;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * {@link ApplicationContextInitializer} that sets the Spring
@@ -37,6 +37,9 @@ import org.springframework.util.StringUtils;
 public class ContextIdApplicationContextInitializer implements
 		ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {
 
+    /**
+     * 优先级
+     */
 	private int order = Ordered.LOWEST_PRECEDENCE - 10;
 
 	public void setOrder(int order) {
@@ -50,17 +53,22 @@ public class ContextIdApplicationContextInitializer implements
 
 	@Override
 	public void initialize(ConfigurableApplicationContext applicationContext) {
+	    // 获得（创建） ContextId 对象
 		ContextId contextId = getContextId(applicationContext);
+		// 设置到 applicationContext 中
 		applicationContext.setId(contextId.getId());
-		applicationContext.getBeanFactory().registerSingleton(ContextId.class.getName(),
-				contextId);
+		// 注册到 contextId 到 Spring 容器中
+		applicationContext.getBeanFactory().registerSingleton(ContextId.class.getName(), contextId);
 	}
 
 	private ContextId getContextId(ConfigurableApplicationContext applicationContext) {
-		ApplicationContext parent = applicationContext.getParent();
+		// 获得父 ApplicationContext 对象
+	    ApplicationContext parent = applicationContext.getParent();
+	    // 情况一，如果父 ApplicationContext 存在，且有对应的 ContextId 对象，则使用它生成当前容器的 ContextId 对象
 		if (parent != null && parent.containsBean(ContextId.class.getName())) {
 			return parent.getBean(ContextId.class).createChildId();
 		}
+		// 情况二，创建 ContextId 对象
 		return new ContextId(getApplicationId(applicationContext.getEnvironment()));
 	}
 
@@ -74,14 +82,23 @@ public class ContextIdApplicationContextInitializer implements
 	 */
 	class ContextId {
 
+        /**
+         * 递增序列
+         */
 		private final AtomicLong children = new AtomicLong(0);
 
+        /**
+         * 编号
+         */
 		private final String id;
 
 		ContextId(String id) {
 			this.id = id;
 		}
 
+        /**
+         * @return 创建子 Context 的编号
+         */
 		ContextId createChildId() {
 			return new ContextId(this.id + "-" + this.children.incrementAndGet());
 		}

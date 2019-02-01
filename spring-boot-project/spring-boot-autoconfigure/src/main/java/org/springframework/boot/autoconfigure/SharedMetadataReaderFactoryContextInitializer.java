@@ -49,13 +49,15 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
 class SharedMetadataReaderFactoryContextInitializer implements
 		ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {
 
+    /**
+     * 创建的 CachingMetadataReaderFactory 的 Bean 名字
+     */
 	public static final String BEAN_NAME = "org.springframework.boot.autoconfigure."
-			+ "internalCachingMetadataReaderFactory";
+            + "internalCachingMetadataReaderFactory";
 
 	@Override
 	public void initialize(ConfigurableApplicationContext applicationContext) {
-		applicationContext.addBeanFactoryPostProcessor(
-				new CachingMetadataReaderFactoryPostProcessor());
+		applicationContext.addBeanFactoryPostProcessor(new CachingMetadataReaderFactoryPostProcessor());
 	}
 
 	@Override
@@ -68,8 +70,7 @@ class SharedMetadataReaderFactoryContextInitializer implements
 	 * {@link CachingMetadataReaderFactory} and configure the
 	 * {@link ConfigurationClassPostProcessor}.
 	 */
-	private static class CachingMetadataReaderFactoryPostProcessor
-			implements BeanDefinitionRegistryPostProcessor, PriorityOrdered {
+	private static class CachingMetadataReaderFactoryPostProcessor implements BeanDefinitionRegistryPostProcessor, PriorityOrdered {
 
 		@Override
 		public int getOrder() {
@@ -90,22 +91,21 @@ class SharedMetadataReaderFactoryContextInitializer implements
 		}
 
 		private void register(BeanDefinitionRegistry registry) {
+		    // 创建 SharedMetadataReaderFactoryBean 对应的 BeanDefinition 对象
 			BeanDefinition definition = BeanDefinitionBuilder
-					.genericBeanDefinition(SharedMetadataReaderFactoryBean.class,
-							SharedMetadataReaderFactoryBean::new)
+					.genericBeanDefinition(SharedMetadataReaderFactoryBean.class, SharedMetadataReaderFactoryBean::new)
 					.getBeanDefinition();
+			// 注册到 BeanDefinitionRegistry 中
 			registry.registerBeanDefinition(BEAN_NAME, definition);
 		}
 
-		private void configureConfigurationClassPostProcessor(
-				BeanDefinitionRegistry registry) {
+		private void configureConfigurationClassPostProcessor(BeanDefinitionRegistry registry) {
 			try {
-				BeanDefinition definition = registry.getBeanDefinition(
-						AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME);
-				definition.getPropertyValues().add("metadataReaderFactory",
-						new RuntimeBeanReference(BEAN_NAME));
-			}
-			catch (NoSuchBeanDefinitionException ex) {
+			    // 获得 CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME 对应的 BeanDefinition 对象
+				BeanDefinition definition = registry.getBeanDefinition(AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME);
+				// 添加 SharedMetadataReaderFactoryBean 对象，到其 metadataReaderFactory 属性
+				definition.getPropertyValues().add("metadataReaderFactory", new RuntimeBeanReference(BEAN_NAME));
+			} catch (NoSuchBeanDefinitionException ex) {
 			}
 		}
 
@@ -122,13 +122,11 @@ class SharedMetadataReaderFactoryContextInitializer implements
 
 		@Override
 		public void setBeanClassLoader(ClassLoader classLoader) {
-			this.metadataReaderFactory = new ConcurrentReferenceCachingMetadataReaderFactory(
-					classLoader);
+			this.metadataReaderFactory = new ConcurrentReferenceCachingMetadataReaderFactory(classLoader);
 		}
 
 		@Override
-		public ConcurrentReferenceCachingMetadataReaderFactory getObject()
-				throws Exception {
+		public ConcurrentReferenceCachingMetadataReaderFactory getObject() throws Exception {
 			return this.metadataReaderFactory;
 		}
 

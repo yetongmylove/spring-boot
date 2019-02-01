@@ -16,21 +16,17 @@
 
 package org.springframework.boot.web.context;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.*;
 import org.springframework.util.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * {@link ApplicationContextInitializer} that sets {@link Environment} properties for the
@@ -60,9 +56,10 @@ public class ServerPortInfoApplicationContextInitializer
 
 	@Override
 	public void onApplicationEvent(WebServerInitializedEvent event) {
+	    // 获得属性名
 		String propertyName = "local." + getName(event.getApplicationContext()) + ".port";
-		setPortProperty(event.getApplicationContext(), propertyName,
-				event.getWebServer().getPort());
+		// 设置端口到 environment 的 propertyName 中
+		setPortProperty(event.getApplicationContext(), propertyName, event.getWebServer().getPort());
 	}
 
 	private String getName(WebServerApplicationContext context) {
@@ -70,26 +67,27 @@ public class ServerPortInfoApplicationContextInitializer
 		return StringUtils.hasText(name) ? name : "server";
 	}
 
-	private void setPortProperty(ApplicationContext context, String propertyName,
-			int port) {
-		if (context instanceof ConfigurableApplicationContext) {
-			setPortProperty(((ConfigurableApplicationContext) context).getEnvironment(),
-					propertyName, port);
+	private void setPortProperty(ApplicationContext context, String propertyName, int port) {
+		// 设置端口到 environment 的 propertyName 中
+	    if (context instanceof ConfigurableApplicationContext) {
+			setPortProperty(((ConfigurableApplicationContext) context).getEnvironment(), propertyName, port);
 		}
+	    // 如果有父容器，则继续设置
 		if (context.getParent() != null) {
 			setPortProperty(context.getParent(), propertyName, port);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void setPortProperty(ConfigurableEnvironment environment, String propertyName,
-			int port) {
+	private void setPortProperty(ConfigurableEnvironment environment, String propertyName, int port) {
 		MutablePropertySources sources = environment.getPropertySources();
+		// 获得 "server.ports" 属性对应的值
 		PropertySource<?> source = sources.get("server.ports");
 		if (source == null) {
 			source = new MapPropertySource("server.ports", new HashMap<>());
 			sources.addFirst(source);
 		}
+		// 添加到 source 中
 		((Map<String, Object>) source.getSource()).put(propertyName, port);
 	}
 
