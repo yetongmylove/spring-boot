@@ -38,12 +38,23 @@ public class AnsiOutputApplicationListener
 
 	@Override
 	public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
+//	    if (true) {
+//	        return;
+//        }
 		ConfigurableEnvironment environment = event.getEnvironment();
-		Binder.get(environment)
-				.bind("spring.output.ansi.enabled", AnsiOutput.Enabled.class)
-				.ifBound(AnsiOutput::setEnabled);
-		AnsiOutput.setConsoleAvailable(environment
-				.getProperty("spring.output.ansi.console-available", Boolean.class));
+		// 根据环境变量 spring.output.ansi.enabled 的值，设置 AnsiOutput.enabled 属性
+        environment.getProperty("spring.output.ansi.enabled");
+		Binder.get(environment).bind("spring.output.ansi.enabled", AnsiOutput.Enabled.class)
+                .ifBound(AnsiOutput::setEnabled);
+//        Binder.get(environment).bind("spring.output.ansi.enabled", AnsiOutput.Enabled.class)
+//                .ifBound(new Consumer<Enabled>() {
+//                    @Override
+//                    public void accept(Enabled enabled) {
+//                        AnsiOutput.setEnabled(enabled);
+//                    }
+//                });
+        // 根据环境变量 "spring.output.ansi.console-available 的值，设置 AnsiOutput.consoleAvailable 属性
+		AnsiOutput.setConsoleAvailable(environment.getProperty("spring.output.ansi.console-available", Boolean.class));
 	}
 
 	@Override

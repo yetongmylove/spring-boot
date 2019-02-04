@@ -16,18 +16,17 @@
 
 package org.springframework.boot.context.logging;
 
-import java.net.URLClassLoader;
-import java.util.Arrays;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.boot.context.event.ApplicationFailedEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.GenericApplicationListener;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.core.ResolvableType;
+
+import java.net.URLClassLoader;
+import java.util.Arrays;
 
 /**
  * A {@link SmartApplicationListener} that reacts to
@@ -38,23 +37,24 @@ import org.springframework.core.ResolvableType;
  * @author Andy Wilkinson
  * @since 2.0.0
  */
-public final class ClasspathLoggingApplicationListener
-		implements GenericApplicationListener {
+public final class ClasspathLoggingApplicationListener implements GenericApplicationListener {
 
+    /**
+     * 顺序
+     */
 	private static final int ORDER = LoggingApplicationListener.DEFAULT_ORDER + 1;
 
-	private static final Log logger = LogFactory
-			.getLog(ClasspathLoggingApplicationListener.class);
+	private static final Log logger = LogFactory.getLog(ClasspathLoggingApplicationListener.class);
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (logger.isDebugEnabled()) {
+		    // 如果是 ApplicationEnvironmentPreparedEvent 事件，说明启动成功，打印成功到 debug 日志中
 			if (event instanceof ApplicationEnvironmentPreparedEvent) {
 				logger.debug("Application started with classpath: " + getClasspath());
-			}
-			else if (event instanceof ApplicationFailedEvent) {
-				logger.debug(
-						"Application failed to start with classpath: " + getClasspath());
+            // 如果是 ApplicationFailedEvent 事件，说明启动失败，打印失败到 debug 日志中
+			} else if (event instanceof ApplicationFailedEvent) {
+				logger.debug("Application failed to start with classpath: " + getClasspath());
 			}
 		}
 	}
@@ -66,14 +66,18 @@ public final class ClasspathLoggingApplicationListener
 
 	@Override
 	public boolean supportsEventType(ResolvableType resolvableType) {
-		Class<?> type = resolvableType.getRawClass();
+		Class<?> type = resolvableType.getRawClass(); // 使用 ResolvableType 类，可以解析当前传入的参数的泛型，从而后的事件类型
 		if (type == null) {
 			return false;
 		}
+		// 判断是否需为 ApplicationEnvironmentPreparedEvent 或者 ApplicationFailedEvent 事件
 		return ApplicationEnvironmentPreparedEvent.class.isAssignableFrom(type)
 				|| ApplicationFailedEvent.class.isAssignableFrom(type);
 	}
 
+    /**
+     * @return 获得 classpath
+     */
 	private String getClasspath() {
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		if (classLoader instanceof URLClassLoader) {
