@@ -49,22 +49,23 @@ public class PropertySourcesPlaceholdersResolver implements PlaceholdersResolver
 			PropertyPlaceholderHelper helper) {
 		this.sources = sources;
 		this.helper = (helper != null) ? helper
-				: new PropertyPlaceholderHelper(SystemPropertyUtils.PLACEHOLDER_PREFIX,
-						SystemPropertyUtils.PLACEHOLDER_SUFFIX,
+				: new PropertyPlaceholderHelper(SystemPropertyUtils.PLACEHOLDER_PREFIX, // ${
+						SystemPropertyUtils.PLACEHOLDER_SUFFIX, // }
 						SystemPropertyUtils.VALUE_SEPARATOR, true);
 	}
 
 	@Override
 	public Object resolvePlaceholders(Object value) {
-		if (value != null && value instanceof String) {
-			return this.helper.replacePlaceholders((String) value,
-					this::resolvePlaceholder);
+	    // 如果 value 是 String 类型，才是占位符
+		if (value instanceof String) {
+			return this.helper.replacePlaceholders((String) value, this::resolvePlaceholder);
 		}
 		return value;
 	}
 
 	protected String resolvePlaceholder(String placeholder) {
 		if (this.sources != null) {
+		    // 遍历 sources 数组，逐个获得属性值。若获取到，则进行返回
 			for (PropertySource<?> source : this.sources) {
 				Object value = source.getProperty(placeholder);
 				if (value != null) {
@@ -77,8 +78,7 @@ public class PropertySourcesPlaceholdersResolver implements PlaceholdersResolver
 
 	private static PropertySources getSources(Environment environment) {
 		Assert.notNull(environment, "Environment must not be null");
-		Assert.isInstanceOf(ConfigurableEnvironment.class, environment,
-				"Environment must be a ConfigurableEnvironment");
+		Assert.isInstanceOf(ConfigurableEnvironment.class, environment, "Environment must be a ConfigurableEnvironment");
 		return ((ConfigurableEnvironment) environment).getPropertySources();
 	}
 

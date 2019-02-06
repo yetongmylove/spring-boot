@@ -1,10 +1,13 @@
 package cn.iocoder.springboot.mvc;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootApplication(exclude = {SpringApplicationAdminJmxAutoConfiguration.class},
     excludeName = "org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration1",
@@ -24,7 +27,10 @@ public class MVCApplication {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(MVCApplication.class, args);
+//        SpringApplication.run(MVCApplication.class, args);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("test", true);
+        new SpringApplicationBuilder().profiles("abc").properties(properties).run(args);
     }
 
 }

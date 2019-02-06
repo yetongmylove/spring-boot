@@ -16,17 +16,16 @@
 
 package org.springframework.boot.env;
 
-import java.util.Random;
-import java.util.UUID;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
+
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * {@link PropertySource} that returns a random value for any property that starts with
@@ -71,33 +70,41 @@ public class RandomValuePropertySource extends PropertySource<Random> {
 
 	@Override
 	public Object getProperty(String name) {
+	    // 必须以 random. 前缀
 		if (!name.startsWith(PREFIX)) {
 			return null;
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("Generating random property for '" + name + "'");
 		}
+		// 根据类型，获得随机值
 		return getRandomValue(name.substring(PREFIX.length()));
 	}
 
 	private Object getRandomValue(String type) {
-		if (type.equals("int")) {
+		// int
+	    if (type.equals("int")) {
 			return getSource().nextInt();
 		}
+	    // long
 		if (type.equals("long")) {
 			return getSource().nextLong();
 		}
+		// int 范围
 		String range = getRange(type, "int");
 		if (range != null) {
 			return getNextIntInRange(range);
 		}
+		// long 范围
 		range = getRange(type, "long");
 		if (range != null) {
 			return getNextLongInRange(range);
 		}
+		// uuid
 		if (type.equals("uuid")) {
 			return UUID.randomUUID().toString();
 		}
+		// md5
 		return getRandomBytes();
 	}
 
@@ -137,9 +144,7 @@ public class RandomValuePropertySource extends PropertySource<Random> {
 	}
 
 	public static void addToEnvironment(ConfigurableEnvironment environment) {
-		environment.getPropertySources().addAfter(
-				StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-				new RandomValuePropertySource(RANDOM_PROPERTY_SOURCE_NAME));
+		environment.getPropertySources().addAfter(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, new RandomValuePropertySource(RANDOM_PROPERTY_SOURCE_NAME));
 		logger.trace("RandomValuePropertySource add to Environment");
 	}
 
