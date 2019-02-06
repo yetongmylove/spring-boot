@@ -23,7 +23,7 @@ server:
 ---
 #生产环境配置
 spring:
-  profiles: prd
+  profiles: prod
 
 server:
   port: 1002
