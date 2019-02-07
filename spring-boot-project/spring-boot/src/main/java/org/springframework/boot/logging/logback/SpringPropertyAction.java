@@ -72,8 +72,7 @@ class SpringPropertyAction extends Action {
 		int lastDot = source.lastIndexOf('.');
 		if (lastDot > 0) {
 			String prefix = source.substring(0, lastDot + 1);
-			return this.environment.getProperty(prefix + source.substring(lastDot + 1),
-					defaultValue);
+			return this.environment.getProperty(prefix + source.substring(lastDot + 1), defaultValue);
 		}
 		return defaultValue;
 	}

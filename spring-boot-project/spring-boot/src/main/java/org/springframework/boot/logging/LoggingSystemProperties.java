@@ -100,16 +100,18 @@ public class LoggingSystemProperties {
 	}
 
 	public void apply(LogFile logFile) {
+	    // 获得 PropertyResolver 对象
 		PropertyResolver resolver = getPropertyResolver();
-		setSystemProperty(resolver, EXCEPTION_CONVERSION_WORD,
-				"exception-conversion-word");
-		setSystemProperty(PID_KEY, new ApplicationPid().toString());
+		// 解析配置文件到系统属性中
+		setSystemProperty(resolver, EXCEPTION_CONVERSION_WORD, "exception-conversion-word");
+		setSystemProperty(PID_KEY, new ApplicationPid().toString()); // 应用进程编号
 		setSystemProperty(resolver, CONSOLE_LOG_PATTERN, "pattern.console");
 		setSystemProperty(resolver, FILE_LOG_PATTERN, "pattern.file");
 		setSystemProperty(resolver, FILE_MAX_HISTORY, "file.max-history");
 		setSystemProperty(resolver, FILE_MAX_SIZE, "file.max-size");
 		setSystemProperty(resolver, LOG_LEVEL_PATTERN, "pattern.level");
 		setSystemProperty(resolver, LOG_DATEFORMAT_PATTERN, "pattern.dateformat");
+		// 如果 logFile 非空，则应用配置
 		if (logFile != null) {
 			logFile.applyToSystemProperties();
 		}
@@ -117,18 +119,15 @@ public class LoggingSystemProperties {
 
 	private PropertyResolver getPropertyResolver() {
 		if (this.environment instanceof ConfigurableEnvironment) {
-			PropertySourcesPropertyResolver resolver = new PropertySourcesPropertyResolver(
-					((ConfigurableEnvironment) this.environment).getPropertySources());
+			PropertySourcesPropertyResolver resolver = new PropertySourcesPropertyResolver(((ConfigurableEnvironment) this.environment).getPropertySources());
 			resolver.setIgnoreUnresolvableNestedPlaceholders(true);
 			return resolver;
 		}
 		return this.environment;
 	}
 
-	private void setSystemProperty(PropertyResolver resolver, String systemPropertyName,
-			String propertyName) {
-		setSystemProperty(systemPropertyName,
-				resolver.getProperty("logging." + propertyName));
+	private void setSystemProperty(PropertyResolver resolver, String systemPropertyName, String propertyName) {
+		setSystemProperty(systemPropertyName, resolver.getProperty("logging." + propertyName));
 	}
 
 	private void setSystemProperty(String name, String value) {

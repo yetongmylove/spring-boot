@@ -16,15 +16,6 @@
 
 package org.springframework.boot.logging.logback;
 
-import java.net.URL;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Handler;
-import java.util.logging.LogManager;
-
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
@@ -39,18 +30,20 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.slf4j.impl.StaticLoggerBinder;
-
-import org.springframework.boot.logging.LogFile;
-import org.springframework.boot.logging.LogLevel;
-import org.springframework.boot.logging.LoggerConfiguration;
-import org.springframework.boot.logging.LoggingInitializationContext;
-import org.springframework.boot.logging.LoggingSystem;
-import org.springframework.boot.logging.LoggingSystemProperties;
-import org.springframework.boot.logging.Slf4JLoggingSystem;
+import org.springframework.boot.logging.*;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
+
+import java.net.URL;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
 
 /**
  * {@link LoggingSystem} for <a href="http://logback.qos.ch">logback</a>.
@@ -99,63 +92,68 @@ public class LogbackLoggingSystem extends Slf4JLoggingSystem {
 
 	@Override
 	public void beforeInitialize() {
+	    // 获得 LoggerContext 对象
 		LoggerContext loggerContext = getLoggerContext();
+		// 如果已经初始化过，则直接返回
 		if (isAlreadyInitialized(loggerContext)) {
 			return;
 		}
+		// 调用父方法
 		super.beforeInitialize();
+		// 添加 FILTER 到其中
 		loggerContext.getTurboFilterList().add(FILTER);
 	}
 
 	@Override
-	public void initialize(LoggingInitializationContext initializationContext,
-			String configLocation, LogFile logFile) {
-		LoggerContext loggerContext = getLoggerContext();
+	public void initialize(LoggingInitializationContext initializationContext, String configLocation, LogFile logFile) {
+		// 如果已经初始化，则返回
+	    LoggerContext loggerContext = getLoggerContext();
 		if (isAlreadyInitialized(loggerContext)) {
 			return;
 		}
+		// 调用父方法
 		super.initialize(initializationContext, configLocation, logFile);
+		// 移除 FILTER
 		loggerContext.getTurboFilterList().remove(FILTER);
+		// 标记已经初始化
 		markAsInitialized(loggerContext);
+		// 如果配置了 logback.configurationFile ，则打印日志
 		if (StringUtils.hasText(System.getProperty(CONFIGURATION_FILE_PROPERTY))) {
-			getLogger(LogbackLoggingSystem.class.getName()).warn(
-					"Ignoring '" + CONFIGURATION_FILE_PROPERTY + "' system property. "
-							+ "Please use 'logging.config' instead.");
+			getLogger(LogbackLoggingSystem.class.getName()).warn("Ignoring '" + CONFIGURATION_FILE_PROPERTY + "' system property. " + "Please use 'logging.config' instead.");
 		}
 	}
 
 	@Override
-	protected void loadDefaults(LoggingInitializationContext initializationContext,
-			LogFile logFile) {
-		LoggerContext context = getLoggerContext();
+	protected void loadDefaults(LoggingInitializationContext initializationContext, LogFile logFile) {
+		// 重置
+	    LoggerContext context = getLoggerContext();
 		stopAndReset(context);
+		// 创建 LogbackConfigurator 对象
 		LogbackConfigurator configurator = new LogbackConfigurator(context);
+		// 从 environment 读取变量，设置到 context 中。
 		Environment environment = initializationContext.getEnvironment();
-		context.putProperty(LoggingSystemProperties.LOG_LEVEL_PATTERN,
-				environment.resolvePlaceholders(
-						"${logging.pattern.level:${LOG_LEVEL_PATTERN:%5p}}"));
-		context.putProperty(LoggingSystemProperties.LOG_DATEFORMAT_PATTERN,
-				environment.resolvePlaceholders(
-						"${logging.pattern.dateformat:${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}"));
-		new DefaultLogbackConfiguration(initializationContext, logFile)
-				.apply(configurator);
+		context.putProperty(LoggingSystemProperties.LOG_LEVEL_PATTERN, environment.resolvePlaceholders("${logging.pattern.level:${LOG_LEVEL_PATTERN:%5p}}"));
+		context.putProperty(LoggingSystemProperties.LOG_DATEFORMAT_PATTERN, environment.resolvePlaceholders("${logging.pattern.dateformat:${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}"));
+		// 创建 DefaultLogbackConfiguration 对象，设置到 configurator 中
+		new DefaultLogbackConfiguration(initializationContext, logFile).apply(configurator);
+		// 设置日志文件，按天滚动
 		context.setPackagingDataEnabled(true);
 	}
 
 	@Override
-	protected void loadConfiguration(LoggingInitializationContext initializationContext,
-			String location, LogFile logFile) {
-		super.loadConfiguration(initializationContext, location, logFile);
-		LoggerContext loggerContext = getLoggerContext();
+	protected void loadConfiguration(LoggingInitializationContext initializationContext, String location, LogFile logFile) {
+		// 调用父方法
+	    super.loadConfiguration(initializationContext, location, logFile);
+		// 重置
+	    LoggerContext loggerContext = getLoggerContext();
 		stopAndReset(loggerContext);
+		// 读取配置文件，并进行配置
 		try {
-			configureByResourceUrl(initializationContext, loggerContext,
-					ResourceUtils.getURL(location));
+			configureByResourceUrl(initializationContext, loggerContext, ResourceUtils.getURL(location));
+		} catch (Exception ex) {
+			throw new IllegalStateException("Could not initialize Logback logging from " + location, ex);
 		}
-		catch (Exception ex) {
-			throw new IllegalStateException(
-					"Could not initialize Logback logging from " + location, ex);
-		}
+		// 判断是否发生错误。如果有，则抛出 IllegalStateException 异常
 		List<Status> statuses = loggerContext.getStatusManager().getCopyOfStatusList();
 		StringBuilder errors = new StringBuilder();
 		for (Status status : statuses) {
@@ -165,29 +163,30 @@ public class LogbackLoggingSystem extends Slf4JLoggingSystem {
 			}
 		}
 		if (errors.length() > 0) {
-			throw new IllegalStateException(
-					String.format("Logback configuration error detected: %n%s", errors));
+			throw new IllegalStateException(String.format("Logback configuration error detected: %n%s", errors));
 		}
 	}
 
-	private void configureByResourceUrl(
-			LoggingInitializationContext initializationContext,
-			LoggerContext loggerContext, URL url) throws JoranException {
+	private void configureByResourceUrl(LoggingInitializationContext initializationContext, LoggerContext loggerContext, URL url) throws JoranException {
+	    // 如果是 xml 配置格式，则使用 SpringBootJoranConfigurator
 		if (url.toString().endsWith("xml")) {
-			JoranConfigurator configurator = new SpringBootJoranConfigurator(
-					initializationContext);
+			JoranConfigurator configurator = new SpringBootJoranConfigurator(initializationContext);
 			configurator.setContext(loggerContext);
 			configurator.doConfigure(url);
-		}
-		else {
+        // 如果是其它格式，则使用 ContextInitializer
+		} else {
 			new ContextInitializer(loggerContext).configureByResource(url);
 		}
 	}
 
 	private void stopAndReset(LoggerContext loggerContext) {
+	    // 停止
 		loggerContext.stop();
+		// 重置
 		loggerContext.reset();
+		// 如果是 SLF4J 桥接
 		if (isBridgeHandlerInstalled()) {
+		    // 添加 LevelChangePropagator
 			addLevelChangePropagator(loggerContext);
 		}
 	}
@@ -198,29 +197,40 @@ public class LogbackLoggingSystem extends Slf4JLoggingSystem {
 		}
 		java.util.logging.Logger rootLogger = LogManager.getLogManager().getLogger("");
 		Handler[] handlers = rootLogger.getHandlers();
+		// 判断有 SLF4JBridgeHandler 唯一元素
 		return handlers.length == 1 && handlers[0] instanceof SLF4JBridgeHandler;
 	}
 
 	private void addLevelChangePropagator(LoggerContext loggerContext) {
+	    // 创建 LevelChangePropagator 对象（见 https://cloud.tencent.com/developer/ask/174323 说明）
 		LevelChangePropagator levelChangePropagator = new LevelChangePropagator();
+		// 设置属性
 		levelChangePropagator.setResetJUL(true);
 		levelChangePropagator.setContext(loggerContext);
+		// 添加 LevelChangePropagator 到 loggerContext 中
 		loggerContext.addListener(levelChangePropagator);
 	}
 
 	@Override
 	public void cleanUp() {
+	    // 标记为未初始化
 		LoggerContext context = getLoggerContext();
 		markAsUninitialized(context);
+		// 调用父方法
 		super.cleanUp();
+		// 清空 StatusManager
 		context.getStatusManager().clear();
+		// 移除 FILTER
 		context.getTurboFilterList().remove(FILTER);
 	}
 
 	@Override
 	protected void reinitialize(LoggingInitializationContext initializationContext) {
+	    // 重置
 		getLoggerContext().reset();
+		// 清空 StatusManager
 		getLoggerContext().getStatusManager().clear();
+		// 加载配置
 		loadConfiguration(initializationContext, getSelfInitializationConfig(), null);
 	}
 
@@ -261,7 +271,9 @@ public class LogbackLoggingSystem extends Slf4JLoggingSystem {
 
 	@Override
 	public void setLogLevel(String loggerName, LogLevel level) {
+	    // 获得 Logger 对象
 		ch.qos.logback.classic.Logger logger = getLogger(loggerName);
+		// 设置日志级别
 		if (logger != null) {
 			logger.setLevel(LEVELS.convertSystemToNative(level));
 		}
@@ -301,8 +313,7 @@ public class LogbackLoggingSystem extends Slf4JLoggingSystem {
 			if (codeSource != null) {
 				return codeSource.getLocation();
 			}
-		}
-		catch (SecurityException ex) {
+		} catch (SecurityException ex) {
 			// Unable to determine location
 		}
 		return "unknown location";
@@ -324,7 +335,7 @@ public class LogbackLoggingSystem extends Slf4JLoggingSystem {
 
 		@Override
 		public void run() {
-			getLoggerContext().stop();
+			getLoggerContext().stop(); // 停止
 		}
 
 	}

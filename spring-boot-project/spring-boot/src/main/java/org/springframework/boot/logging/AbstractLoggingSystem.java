@@ -16,18 +16,13 @@
 
 package org.springframework.boot.logging;
 
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.SystemPropertyUtils;
+
+import java.util.*;
 
 /**
  * Abstract base class for {@link LoggingSystem} implementations.
@@ -51,37 +46,42 @@ public abstract class AbstractLoggingSystem extends LoggingSystem {
 	}
 
 	@Override
-	public void initialize(LoggingInitializationContext initializationContext,
-			String configLocation, LogFile logFile) {
-		if (StringUtils.hasLength(configLocation)) {
+	public void initialize(LoggingInitializationContext initializationContext, String configLocation, LogFile logFile) {
+		// 有自定义的配置文件，则使用指定配置文件进行初始化
+	    if (StringUtils.hasLength(configLocation)) {
 			initializeWithSpecificConfig(initializationContext, configLocation, logFile);
 			return;
 		}
+	    // 无自定义的配置文件，则使用约定配置文件进行初始化
 		initializeWithConventions(initializationContext, logFile);
 	}
 
-	private void initializeWithSpecificConfig(
-			LoggingInitializationContext initializationContext, String configLocation,
-			LogFile logFile) {
-		configLocation = SystemPropertyUtils.resolvePlaceholders(configLocation);
+	private void initializeWithSpecificConfig(LoggingInitializationContext initializationContext, String configLocation, LogFile logFile) {
+		// 获得配置文件（可能有占位符）
+	    configLocation = SystemPropertyUtils.resolvePlaceholders(configLocation);
+	    // 加载配置文件
 		loadConfiguration(initializationContext, configLocation, logFile);
 	}
 
-	private void initializeWithConventions(
-			LoggingInitializationContext initializationContext, LogFile logFile) {
+	private void initializeWithConventions(LoggingInitializationContext initializationContext, LogFile logFile) {
+	    // 获得约定配置文件
 		String config = getSelfInitializationConfig();
+		// 如果获取到，结果 logFile 为空，则重新初始化
 		if (config != null && logFile == null) {
 			// self initialization has occurred, reinitialize in case of property changes
 			reinitialize(initializationContext);
 			return;
 		}
+		// 如果获取不到，则尝试获得约定配置文件（带 spring 后缀）
 		if (config == null) {
 			config = getSpringInitializationConfig();
 		}
+		// 如果获取到，则加载配置文件
 		if (config != null) {
 			loadConfiguration(initializationContext, config, logFile);
 			return;
 		}
+		// 如果获取不到，则加载默认配置
 		loadDefaults(initializationContext, logFile);
 	}
 
@@ -105,9 +105,9 @@ public abstract class AbstractLoggingSystem extends LoggingSystem {
 	}
 
 	private String findConfig(String[] locations) {
+	    // 遍历 locations 数组，逐个判断是否存在。若存在，则返回
 		for (String location : locations) {
-			ClassPathResource resource = new ClassPathResource(location,
-					this.classLoader);
+			ClassPathResource resource = new ClassPathResource(location, this.classLoader);
 			if (resource.exists()) {
 				return "classpath:" + location;
 			}
@@ -132,9 +132,9 @@ public abstract class AbstractLoggingSystem extends LoggingSystem {
 		String[] locations = getStandardConfigLocations();
 		for (int i = 0; i < locations.length; i++) {
 			String extension = StringUtils.getFilenameExtension(locations[i]);
-			locations[i] = locations[i].substring(0,
-					locations[i].length() - extension.length() - 1) + "-spring."
-					+ extension;
+			// 在文件名和后缀之间，拼接一个
+			locations[i] = locations[i].substring(0, locations[i].length() - extension.length() - 1)
+                    + "-spring." + extension;
 		}
 		return locations;
 	}
@@ -144,8 +144,7 @@ public abstract class AbstractLoggingSystem extends LoggingSystem {
 	 * @param initializationContext the logging initialization context
 	 * @param logFile the file to load or {@code null} if no log file is to be written
 	 */
-	protected abstract void loadDefaults(
-			LoggingInitializationContext initializationContext, LogFile logFile);
+	protected abstract void loadDefaults(LoggingInitializationContext initializationContext, LogFile logFile);
 
 	/**
 	 * Load a specific configuration.
@@ -153,9 +152,7 @@ public abstract class AbstractLoggingSystem extends LoggingSystem {
 	 * @param location the location of the configuration to load (never {@code null})
 	 * @param logFile the file to load or {@code null} if no log file is to be written
 	 */
-	protected abstract void loadConfiguration(
-			LoggingInitializationContext initializationContext, String location,
-			LogFile logFile);
+	protected abstract void loadConfiguration(LoggingInitializationContext initializationContext, String location, LogFile logFile);
 
 	/**
 	 * Reinitialize the logging system if required. Called when

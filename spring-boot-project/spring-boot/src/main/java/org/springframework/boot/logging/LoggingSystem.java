@@ -16,15 +16,10 @@
 
 package org.springframework.boot.logging;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import java.util.*;
 
 /**
  * Common abstraction over logging systems.
@@ -58,12 +53,9 @@ public abstract class LoggingSystem {
 
 	static {
 		Map<String, String> systems = new LinkedHashMap<>();
-		systems.put("ch.qos.logback.core.Appender",
-				"org.springframework.boot.logging.logback.LogbackLoggingSystem");
-		systems.put("org.apache.logging.log4j.core.impl.Log4jContextFactory",
-				"org.springframework.boot.logging.log4j2.Log4J2LoggingSystem");
-		systems.put("java.util.logging.LogManager",
-				"org.springframework.boot.logging.java.JavaLoggingSystem");
+		systems.put("ch.qos.logback.core.Appender", "org.springframework.boot.logging.logback.LogbackLoggingSystem");
+		systems.put("org.apache.logging.log4j.core.impl.Log4jContextFactory", "org.springframework.boot.logging.log4j2.Log4J2LoggingSystem");
+		systems.put("java.util.logging.LogManager", "org.springframework.boot.logging.java.JavaLoggingSystem");
 		SYSTEMS = Collections.unmodifiableMap(systems);
 	}
 
@@ -82,8 +74,7 @@ public abstract class LoggingSystem {
 	 * @param logFile the log output file that should be written or {@code null} for
 	 * console only output
 	 */
-	public void initialize(LoggingInitializationContext initializationContext,
-			String configLocation, LogFile logFile) {
+	public void initialize(LoggingInitializationContext initializationContext, String configLocation, LogFile logFile) {
 	}
 
 	/**
@@ -149,27 +140,29 @@ public abstract class LoggingSystem {
 	 * @return the logging system
 	 */
 	public static LoggingSystem get(ClassLoader classLoader) {
+	    // 从系统参数 org.springframework.boot.logging.LoggingSystem 获得 loggingSystem 类型
 		String loggingSystem = System.getProperty(SYSTEM_PROPERTY);
+		// 如果非空，说明配置了
 		if (StringUtils.hasLength(loggingSystem)) {
+		    // 如果是 none ，则创建 NoOpLoggingSystem 对象
 			if (NONE.equals(loggingSystem)) {
 				return new NoOpLoggingSystem();
 			}
+			// 获得 loggingSystem 对应的 LoggingSystem 类，进行创建对象
 			return get(classLoader, loggingSystem);
 		}
+		// 如果为空，说明未配置，则顺序查找 SYSTEMS 中的类。如果存在指定类，则创建该类。
 		return SYSTEMS.entrySet().stream()
 				.filter((entry) -> ClassUtils.isPresent(entry.getKey(), classLoader))
 				.map((entry) -> get(classLoader, entry.getValue())).findFirst()
-				.orElseThrow(() -> new IllegalStateException(
-						"No suitable logging system located"));
+				.orElseThrow(() -> new IllegalStateException("No suitable logging system located"));
 	}
 
 	private static LoggingSystem get(ClassLoader classLoader, String loggingSystemClass) {
 		try {
 			Class<?> systemClass = ClassUtils.forName(loggingSystemClass, classLoader);
-			return (LoggingSystem) systemClass.getConstructor(ClassLoader.class)
-					.newInstance(classLoader);
-		}
-		catch (Exception ex) {
+			return (LoggingSystem) systemClass.getConstructor(ClassLoader.class).newInstance(classLoader);
+		} catch (Exception ex) {
 			throw new IllegalStateException(ex);
 		}
 	}

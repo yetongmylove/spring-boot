@@ -16,13 +16,13 @@
 
 package org.springframework.boot.logging;
 
-import java.io.File;
-import java.util.Properties;
-
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertyResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.io.File;
+import java.util.Properties;
 
 /**
  * A reference to a log output file. Log output files are specified using
@@ -67,8 +67,13 @@ public class LogFile {
 	 */
 	public static final String FILE_PATH_PROPERTY = "logging.file.path";
 
+    /**
+     * 文件名
+     */
 	private final String file;
-
+    /**
+     * 文件路径
+     */
 	private final String path;
 
 	/**
@@ -85,8 +90,7 @@ public class LogFile {
 	 * @param path a reference to the logging path to use if {@code file} is not specified
 	 */
 	LogFile(String file, String path) {
-		Assert.isTrue(StringUtils.hasLength(file) || StringUtils.hasLength(path),
-				"File or Path must not be empty");
+		Assert.isTrue(StringUtils.hasLength(file) || StringUtils.hasLength(path), "File or Path must not be empty");
 		this.file = file;
 		this.path = path;
 	}
@@ -130,18 +134,17 @@ public class LogFile {
 	 */
 	@SuppressWarnings("deprecation")
 	public static LogFile get(PropertyResolver propertyResolver) {
-		String file = getLogFileProperty(propertyResolver, FILE_NAME_PROPERTY,
-				FILE_PROPERTY);
-		String path = getLogFileProperty(propertyResolver, FILE_PATH_PROPERTY,
-				PATH_PROPERTY);
+	    // 获得 file 和 path 属性
+		String file = getLogFileProperty(propertyResolver, FILE_NAME_PROPERTY, FILE_PROPERTY);
+		String path = getLogFileProperty(propertyResolver, FILE_PATH_PROPERTY, PATH_PROPERTY);
+		// 创建 LogFile 对象
 		if (StringUtils.hasLength(file) || StringUtils.hasLength(path)) {
 			return new LogFile(file, path);
 		}
 		return null;
 	}
 
-	private static String getLogFileProperty(PropertyResolver propertyResolver,
-			String propertyName, String deprecatedPropertyName) {
+	private static String getLogFileProperty(PropertyResolver propertyResolver, String propertyName, String deprecatedPropertyName) {
 		String property = propertyResolver.getProperty(propertyName);
 		if (property != null) {
 			return property;
