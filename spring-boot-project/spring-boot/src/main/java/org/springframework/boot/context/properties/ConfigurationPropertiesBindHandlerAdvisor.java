@@ -24,18 +24,19 @@ import org.springframework.boot.context.properties.bind.BindHandler;
  * {@link ConfigurationPropertiesBindingPostProcessor}.
  *
  * @author Phillip Webb
- * @since 2.1.0
  * @see AbstractBindHandler
+ * @since 2.1.0
  */
 @FunctionalInterface
 public interface ConfigurationPropertiesBindHandlerAdvisor {
 
-	/**
-	 * Apply additional functionality to the source bind handler.
-	 * @param bindHandler the source bind handler
-	 * @return a replacement bind handler that delegates to the source and provides
-	 * additional functionality
-	 */
-	BindHandler apply(BindHandler bindHandler);
+    /**
+     * Apply additional functionality to the source bind handler.
+     *
+     * @param bindHandler the source bind handler
+     * @return a replacement bind handler that delegates to the source and provides
+     * additional functionality
+     */
+    BindHandler apply(BindHandler bindHandler);
 
 }

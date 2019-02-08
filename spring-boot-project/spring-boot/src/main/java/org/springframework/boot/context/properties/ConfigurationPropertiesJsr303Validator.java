@@ -65,8 +65,11 @@ final class ConfigurationPropertiesJsr303Validator implements Validator {
 	private static class Delegate extends LocalValidatorFactoryBean {
 
 		Delegate(ApplicationContext applicationContext) {
+		    // 设置 applicationContext 属性
 			setApplicationContext(applicationContext);
+			// 设置 messageInterpolator 属性
 			setMessageInterpolator(new MessageInterpolatorFactory().getObject());
+			// 回调 afterPropertiesSet 方法
 			afterPropertiesSet();
 		}
 

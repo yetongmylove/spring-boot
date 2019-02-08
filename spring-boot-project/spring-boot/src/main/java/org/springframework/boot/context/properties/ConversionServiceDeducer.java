@@ -16,10 +16,6 @@
 
 package org.springframework.boot.context.properties;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -30,6 +26,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Utility to deduce the {@link ConversionService} to use for configuration properties
@@ -47,13 +47,9 @@ class ConversionServiceDeducer {
 
 	public ConversionService getConversionService() {
 		try {
-			return this.applicationContext.getBean(
-					ConfigurableApplicationContext.CONVERSION_SERVICE_BEAN_NAME,
-					ConversionService.class);
-		}
-		catch (NoSuchBeanDefinitionException ex) {
-			return new Factory(this.applicationContext.getAutowireCapableBeanFactory())
-					.create();
+			return this.applicationContext.getBean(ConfigurableApplicationContext.CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
+		} catch (NoSuchBeanDefinitionException ex) {
+			return new Factory(this.applicationContext.getAutowireCapableBeanFactory()).create();
 		}
 	}
 
@@ -65,14 +61,11 @@ class ConversionServiceDeducer {
 		private final List<GenericConverter> genericConverters;
 
 		Factory(BeanFactory beanFactory) {
-			this.converters = beans(beanFactory, Converter.class,
-					ConfigurationPropertiesBinding.VALUE);
-			this.genericConverters = beans(beanFactory, GenericConverter.class,
-					ConfigurationPropertiesBinding.VALUE);
+			this.converters = beans(beanFactory, Converter.class, ConfigurationPropertiesBinding.VALUE);
+			this.genericConverters = beans(beanFactory, GenericConverter.class, ConfigurationPropertiesBinding.VALUE);
 		}
 
-		private <T> List<T> beans(BeanFactory beanFactory, Class<T> type,
-				String qualifier) {
+		private <T> List<T> beans(BeanFactory beanFactory, Class<T> type, String qualifier) {
 			if (beanFactory instanceof ListableBeanFactory) {
 				return beans(type, qualifier, (ListableBeanFactory) beanFactory);
 			}
@@ -86,10 +79,13 @@ class ConversionServiceDeducer {
 		}
 
 		public ConversionService create() {
+		    // 情况一，创建（获得） ApplicationConversionService
 			if (this.converters.isEmpty() && this.genericConverters.isEmpty()) {
 				return ApplicationConversionService.getSharedInstance();
 			}
+			// 情况二，创建 ApplicationConversionService 对象
 			ApplicationConversionService conversionService = new ApplicationConversionService();
+			// 添加 converters、genericConverters 到 conversionService 中
 			for (Converter<?, ?> converter : this.converters) {
 				conversionService.addConverter(converter);
 			}

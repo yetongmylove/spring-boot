@@ -16,17 +16,16 @@
 
 package org.springframework.boot.context.properties;
 
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySources;
+
+import java.util.Map;
 
 /**
  * Utility to deduce the {@link PropertySources} to use for configuration binding.
@@ -44,16 +43,19 @@ class PropertySourcesDeducer {
 	}
 
 	public PropertySources getPropertySources() {
+	    // 获得 PropertySourcesPlaceholderConfigurer 对象
 		PropertySourcesPlaceholderConfigurer configurer = getSinglePropertySourcesPlaceholderConfigurer();
+		// 获得 PropertySource 数组
 		if (configurer != null) {
 			return configurer.getAppliedPropertySources();
 		}
+		// 从 environment 中，获得 MutablePropertySources 对象
 		MutablePropertySources sources = extractEnvironmentPropertySources();
 		if (sources != null) {
 			return sources;
 		}
-		throw new IllegalStateException("Unable to obtain PropertySources from "
-				+ "PropertySourcesPlaceholderConfigurer or Environment");
+		// 获得不到，抛出 IllegalStateException 异常
+		throw new IllegalStateException("Unable to obtain PropertySources from " + "PropertySourcesPlaceholderConfigurer or Environment");
 	}
 
 	private MutablePropertySources extractEnvironmentPropertySources() {
@@ -66,15 +68,12 @@ class PropertySourcesDeducer {
 
 	private PropertySourcesPlaceholderConfigurer getSinglePropertySourcesPlaceholderConfigurer() {
 		// Take care not to cause early instantiation of all FactoryBeans
-		Map<String, PropertySourcesPlaceholderConfigurer> beans = this.applicationContext
-				.getBeansOfType(PropertySourcesPlaceholderConfigurer.class, false, false);
+		Map<String, PropertySourcesPlaceholderConfigurer> beans = this.applicationContext.getBeansOfType(PropertySourcesPlaceholderConfigurer.class, false, false);
 		if (beans.size() == 1) {
 			return beans.values().iterator().next();
 		}
 		if (beans.size() > 1 && logger.isWarnEnabled()) {
-			logger.warn(
-					"Multiple PropertySourcesPlaceholderConfigurer " + "beans registered "
-							+ beans.keySet() + ", falling back to Environment");
+			logger.warn("Multiple PropertySourcesPlaceholderConfigurer " + "beans registered " + beans.keySet() + ", falling back to Environment");
 		}
 		return null;
 	}
