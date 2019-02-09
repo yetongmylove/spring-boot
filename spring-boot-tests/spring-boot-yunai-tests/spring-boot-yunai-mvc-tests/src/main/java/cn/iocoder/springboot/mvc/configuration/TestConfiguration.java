@@ -1,4 +1,4 @@
-package cn.iocoder.springboot.mvc;
+package cn.iocoder.springboot.mvc.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
