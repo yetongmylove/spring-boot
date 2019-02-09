@@ -50,7 +50,7 @@ final class Elements {
 		if (type instanceof DeclaredType) {
 			DeclaredType declaredType = (DeclaredType) type;
 			Element enclosingElement = declaredType.asElement().getEnclosingElement();
-			if (enclosingElement != null && enclosingElement instanceof TypeElement) {
+			if (enclosingElement instanceof TypeElement) {
 				return (TypeElement) enclosingElement;
 			}
 		}

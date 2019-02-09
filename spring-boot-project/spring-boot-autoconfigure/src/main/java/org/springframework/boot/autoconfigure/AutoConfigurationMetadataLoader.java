@@ -16,15 +16,15 @@
 
 package org.springframework.boot.autoconfigure;
 
+import org.springframework.core.io.UrlResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.util.StringUtils;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Set;
-
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Internal utility used to load {@link AutoConfigurationMetadata}.
@@ -33,8 +33,7 @@ import org.springframework.util.StringUtils;
  */
 final class AutoConfigurationMetadataLoader {
 
-	protected static final String PATH = "META-INF/"
-			+ "spring-autoconfigure-metadata.properties";
+	protected static final String PATH = "META-INF/" + "spring-autoconfigure-metadata.properties";
 
 	private AutoConfigurationMetadataLoader() {
 	}
@@ -45,18 +44,17 @@ final class AutoConfigurationMetadataLoader {
 
 	static AutoConfigurationMetadata loadMetadata(ClassLoader classLoader, String path) {
 		try {
-			Enumeration<URL> urls = (classLoader != null) ? classLoader.getResources(path)
-					: ClassLoader.getSystemResources(path);
-			Properties properties = new Properties();
+            // 获得 PATH 对应的 URL 们
+			Enumeration<URL> urls = (classLoader != null) ? classLoader.getResources(path) : ClassLoader.getSystemResources(path);
+            // 遍历 URL 数组，读取到 properties 中
+            Properties properties = new Properties();
 			while (urls.hasMoreElements()) {
-				properties.putAll(PropertiesLoaderUtils
-						.loadProperties(new UrlResource(urls.nextElement())));
+				properties.putAll(PropertiesLoaderUtils.loadProperties(new UrlResource(urls.nextElement())));
 			}
+			// 将 properties 转换成 PropertiesAutoConfigurationMetadata 对象
 			return loadMetadata(properties);
-		}
-		catch (IOException ex) {
-			throw new IllegalArgumentException(
-					"Unable to load @ConditionalOnClass location [" + path + "]", ex);
+		} catch (IOException ex) {
+			throw new IllegalArgumentException("Unable to load @ConditionalOnClass location [" + path + "]", ex);
 		}
 	}
 
@@ -67,9 +65,11 @@ final class AutoConfigurationMetadataLoader {
 	/**
 	 * {@link AutoConfigurationMetadata} implementation backed by a properties file.
 	 */
-	private static class PropertiesAutoConfigurationMetadata
-			implements AutoConfigurationMetadata {
+	private static class PropertiesAutoConfigurationMetadata implements AutoConfigurationMetadata {
 
+        /**
+         * Properties 对象
+         */
 		private final Properties properties;
 
 		PropertiesAutoConfigurationMetadata(Properties properties) {
@@ -98,11 +98,9 @@ final class AutoConfigurationMetadataLoader {
 		}
 
 		@Override
-		public Set<String> getSet(String className, String key,
-				Set<String> defaultValue) {
+		public Set<String> getSet(String className, String key, Set<String> defaultValue) {
 			String value = get(className, key);
-			return (value != null) ? StringUtils.commaDelimitedListToSet(value)
-					: defaultValue;
+			return (value != null) ? StringUtils.commaDelimitedListToSet(value) : defaultValue;
 		}
 
 		@Override

@@ -1,9 +1,11 @@
 package cn.iocoder.springboot.mvc;
 
 import cn.iocoder.springboot.mvc.config.TestProperties;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 
@@ -27,7 +29,7 @@ public class MVCApplication {
 
     public static void main(String[] args) {
 //        BeanDefinitionLoader
-//        ApplicationContext context = SpringApplication.run(MVCApplication.class, new String[]{"cn.iocoder.springboot.mvc.configuration"});
+        ApplicationContext context = SpringApplication.run(MVCApplication.class, args);
 
 //        System.out.println(context.getBean(TestProperties.class).getPort());
 
