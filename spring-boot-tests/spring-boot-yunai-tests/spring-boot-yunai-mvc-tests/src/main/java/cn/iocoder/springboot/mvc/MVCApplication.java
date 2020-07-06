@@ -31,7 +31,7 @@ public class MVCApplication {
 //        BeanDefinitionLoader
         ApplicationContext context = SpringApplication.run(MVCApplication.class, args);
 
-//        System.out.println(context.getBean(TestProperties.class).getPort());
+        System.out.println(context.getBean(TestProperties.class).getPort());
 
 //        Map<String, Object> properties = new HashMap<>();
 //        properties.put("test", true);
