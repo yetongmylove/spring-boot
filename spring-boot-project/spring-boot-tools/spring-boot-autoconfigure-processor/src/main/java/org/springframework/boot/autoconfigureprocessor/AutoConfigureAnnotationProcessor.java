@@ -201,6 +201,7 @@ public class AutoConfigureAnnotationProcessor extends AbstractProcessor {
 	}
 
 	@FunctionalInterface
+	//	值提取器
 	private interface ValueExtractor {
 
         /**

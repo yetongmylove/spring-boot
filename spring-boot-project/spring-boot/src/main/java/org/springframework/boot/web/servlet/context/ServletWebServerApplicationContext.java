@@ -119,6 +119,8 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	 * Register ServletContextAwareProcessor.
 	 * @see ServletContextAwareProcessor
 	 */
+
+	//	重写AbstractApplicationContext类的postProcessBeanFactory
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 	    // 注册 WebApplicationContextServletContextAwareProcessor

@@ -48,6 +48,7 @@ import java.util.Set;
  * @see ServletWebServerApplicationContext
  * @see AnnotationConfigWebApplicationContext
  */
+//	spring web容器
 public class AnnotationConfigServletWebServerApplicationContext extends ServletWebServerApplicationContext implements AnnotationConfigRegistry {
 
 	private final AnnotatedBeanDefinitionReader reader;

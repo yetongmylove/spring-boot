@@ -131,6 +131,8 @@ import java.util.*;
  * @see #run(Class[], String[])
  * @see #SpringApplication(Class...)
  */
+
+//	Spring 应用启动器
 public class SpringApplication {
 
 	/**

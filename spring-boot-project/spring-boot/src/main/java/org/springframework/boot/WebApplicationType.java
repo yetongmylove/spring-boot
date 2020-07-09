@@ -73,6 +73,7 @@ public enum WebApplicationType {
      */
 	static WebApplicationType deduceFromClasspath() {
         // WebApplicationType.REACTIVE 类型
+		//	判断当前class loader中是否存在对应的类型
 		if (ClassUtils.isPresent(WEBFLUX_INDICATOR_CLASS, null) // 存在 Spring Webflux 的类
 				&& !ClassUtils.isPresent(WEBMVC_INDICATOR_CLASS, null)
 				&& !ClassUtils.isPresent(JERSEY_INDICATOR_CLASS, null)) {
